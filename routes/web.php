@@ -25,3 +25,7 @@ Route::get('/cryptocurrency', [PageController::class, 'cryptocurrency'])->name('
 Route::get('/invest-professional', [PageController::class, 'investProfessional'])->name('invest-professional');
 Route::get('/protection', [PageController::class, 'protection'])->name('protection');
 Route::get('/deposits', [PageController::class, 'deposits'])->name('deposits');
+
+// Auth Pages
+Route::get('/login', [PageController::class, 'login'])->name('login');
+Route::get('/register', [PageController::class, 'register'])->name('register');

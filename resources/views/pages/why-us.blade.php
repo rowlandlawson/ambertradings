@@ -212,7 +212,7 @@
         <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Ready to Start Trading?</h2>
         <p class="text-lg text-white/90 mb-8 max-w-2xl mx-auto">Join thousands of traders who trust Amber Tradings for their investment needs.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://portal.ambertradings.com/register" 
+            <a href="{{ route('register') }}" 
                class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-orange-500 bg-white rounded-full shadow-lg hover:bg-white/90 hover:-translate-y-1 transition-all duration-300"
                target="_blank">
                 Open Account

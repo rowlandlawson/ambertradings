@@ -25,6 +25,30 @@
     @yield('styles')
 </head>
 <body class="antialiased bg-white text-slate-700 overflow-x-hidden">
+    <!-- Page Loading Overlay -->
+    <div id="pageLoader" class="fixed inset-0 z-[99999] flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 transition-opacity duration-500">
+        <div class="text-center">
+            <!-- Animated Logo -->
+            <div class="relative mb-8">
+                <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center animate-pulse">
+                    <img src="{{ asset('images/logo_color.png') }}" alt="" class="w-full h-full object-contain">
+                </div>
+                <!-- Spinning ring -->
+                <div class="absolute inset-0 w-20 h-20 mx-auto border-4 border-transparent border-t-orange-500 rounded-full animate-spin"></div>
+            </div>
+            <!-- Logo Text -->
+            <h2 class="text-2xl font-bold text-white mb-2">
+                Amber<span class="text-orange-500">Tradings</span>
+            </h2>
+            <!-- Loading dots -->
+            <div class="flex items-center justify-center gap-1 mt-4">
+                <div class="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                <div class="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 150ms;"></div>
+                <div class="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style="animation-delay: 300ms;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     @include('components.header')
     
@@ -98,6 +122,33 @@
                 }
             });
         });
+    </script>
+    
+    <!-- Page Loader Script -->
+    <script>
+        // Hide loader when page is fully loaded
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('pageLoader');
+            if (loader) {
+                // Add fade-out effect
+                loader.style.opacity = '0';
+                // Remove from DOM after animation
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 500);
+            }
+        });
+        
+        // Fallback: hide loader after 3 seconds max
+        setTimeout(function() {
+            const loader = document.getElementById('pageLoader');
+            if (loader && loader.style.display !== 'none') {
+                loader.style.opacity = '0';
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                }, 500);
+            }
+        }, 3000);
     </script>
     
     @yield('scripts')

@@ -223,7 +223,7 @@
     <div class="container mx-auto px-4 sm:px-6 text-center">
         <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4">Are you a Professional Client?</h2>
         <p class="text-lg text-white/90 mb-8 max-w-2xl mx-auto">Apply to find out and unlock exclusive benefits and rewards.</p>
-        <a href="https://portal.ambertradings.com/login" 
+        <a href="{{ route('login') }}" 
            class="inline-flex items-center justify-center px-10 py-4 text-lg font-semibold text-orange-500 bg-white rounded-full shadow-lg hover:bg-white/90 hover:-translate-y-1 transition-all duration-300"
            target="_blank">
             Login To Begin

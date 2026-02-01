@@ -90,4 +90,14 @@ class PageController extends Controller
     {
         return view('pages.deposits');
     }
+
+    public function login()
+    {
+        return view('pages.login');
+    }
+
+    public function register()
+    {
+        return view('pages.register');
+    }
 }

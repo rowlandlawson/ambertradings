@@ -29,12 +29,12 @@
             
             <!-- CTA Buttons -->
             <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-12 sm:mb-16 px-4 sm:px-0 animate-fade-in-up" style="animation-delay: 0.2s;">
-                <a href="https://portal.ambertradings.com/public/register" 
+                <a href="{{ route('register') }}" 
                    class="inline-flex items-center justify-center px-8 sm:px-10 py-3.5 sm:py-4 text-sm sm:text-base font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:-translate-y-1 transition-all duration-300"
                    target="_blank">
                     Open Account
                 </a>
-                <a href="https://portal.ambertradings.com/public" 
+                <a href="{{ route('login') }}" 
                    class="inline-flex items-center justify-center px-8 sm:px-10 py-3.5 sm:py-4 text-sm sm:text-base font-semibold text-white border-2 border-white/30 rounded-full hover:bg-white/10 hover:border-white/50 hover:-translate-y-1 transition-all duration-300"
                    target="_blank">
                     Login

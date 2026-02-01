@@ -74,7 +74,7 @@
                     </li>
                     
                     <li class="ml-4">
-                        <a href="https://portal.ambertradings.com/login" class="inline-block px-7 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:-translate-y-0.5 transition-all duration-300">
+                        <a href="{{ route('login') }}" class="inline-block px-7 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:-translate-y-0.5 transition-all duration-300">
                             LOGIN
                         </a>
                     </li>
@@ -134,7 +134,7 @@
                     <a href="{{ route('contact') }}" class="block py-4 text-white/85 hover:text-white border-b border-white/10 transition-colors">Contact Us</a>
                 </li>
                 <li class="mt-6">
-                    <a href="https://portal.ambertradings.com/login" class="block w-full py-4 text-center text-white font-semibold bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg">
+                    <a href="{{ route('login') }}" class="block w-full py-4 text-center text-white font-semibold bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg">
                         LOGIN
                     </a>
                 </li>

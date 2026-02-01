@@ -63,12 +63,12 @@
                 <div class="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-6 sm:p-8 text-center sticky top-32">
                     <h3 class="text-2xl font-bold text-white mb-4">Trade Commodities</h3>
                     <p class="text-white/90 mb-6">Diversify your portfolio with commodity trading.</p>
-                    <a href="https://portal.ambertradings.com/register" 
+                    <a href="{{ route('register') }}" 
                        class="inline-block w-full py-4 bg-white text-orange-500 font-semibold rounded-full hover:bg-white/90 transition-all duration-300"
                        target="_blank">
                         Open Account
                     </a>
-                    <a href="https://portal.ambertradings.com/login" 
+                    <a href="{{ route('login') }}" 
                        class="inline-block w-full py-4 mt-3 border-2 border-white text-white font-semibold rounded-full hover:bg-white/10 transition-all duration-300"
                        target="_blank">
                         Login
