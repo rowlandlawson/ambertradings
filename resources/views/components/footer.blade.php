@@ -6,7 +6,7 @@
             <!-- Company Info -->
             <div class="col-span-2 md:col-span-1">
                 <a href="{{ route('home') }}" class="inline-block mb-6">
-                    <img src="{{ asset('images/logo_color.png') }}" alt="Amber Tradings" class="h-10">
+                    <img src="{{ asset('images/logo.webp') }}" alt="Amber Tradings" class="h-10">
                 </a>
                 <p class="text-slate-400 text-sm leading-relaxed mb-6">
                     Your trusted partner for smart investing. Trade with confidence on our secure platform.

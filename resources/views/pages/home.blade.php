@@ -7,7 +7,7 @@
 <section class="relative min-h-screen flex items-center pt-24 sm:pt-32 pb-16 sm:pb-20 overflow-hidden bg-slate-950">
     <!-- Background Image -->
     <div class="absolute inset-0">
-        <img src="{{ asset('images/hero-bg.png') }}" alt="" class="w-full h-full object-cover object-center opacity-60 animate-hero-zoom">
+        <img src="{{ asset('images/hero-bg.webp') }}" alt="" class="w-full h-full object-cover object-center opacity-60 animate-hero-zoom">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
     </div>
     

@@ -30,7 +30,23 @@
                     <p class="text-white/70">Sign in to access your trading account</p>
                 </div>
 
-                <form action="#" method="POST" class="space-y-6">
+                @if ($errors->any())
+                <div class="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/30">
+                    <ul class="text-red-400 text-sm space-y-1">
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
+                @if (session('success'))
+                <div class="mb-6 p-4 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 text-sm">
+                    {{ session('success') }}
+                </div>
+                @endif
+
+                <form action="{{ route('login') }}" method="POST" class="space-y-6">
                     @csrf
                     <!-- Email -->
                     <div>
@@ -39,7 +55,7 @@
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
                                 <i class="fa fa-envelope text-white/40"></i>
                             </span>
-                            <input type="email" name="email" required 
+                            <input type="email" name="email" required value="{{ old('email') }}"
                                    class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                                    placeholder="Enter your email">
                         </div>

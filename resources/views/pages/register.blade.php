@@ -30,31 +30,28 @@
                     <p class="text-white/70">Start your trading journey today</p>
                 </div>
 
-                <form action="#" method="POST" class="space-y-5">
+                @if ($errors->any())
+                <div class="mb-6 p-4 rounded-xl bg-red-500/20 border border-red-500/30">
+                    <ul class="text-red-400 text-sm space-y-1">
+                        @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
+                <form action="{{ route('register') }}" method="POST" class="space-y-5">
                     @csrf
-                    <!-- Name Fields -->
-                    <div class="grid sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-2">First Name</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
-                                    <i class="fa fa-user text-white/40"></i>
-                                </span>
-                                <input type="text" name="first_name" required 
-                                       class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                       placeholder="First name">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-white/80 mb-2">Last Name</label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
-                                    <i class="fa fa-user text-white/40"></i>
-                                </span>
-                                <input type="text" name="last_name" required 
-                                       class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                       placeholder="Last name">
-                            </div>
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-white/80 mb-2">Full Name</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
+                                <i class="fa fa-user text-white/40"></i>
+                            </span>
+                            <input type="text" name="name" required value="{{ old('name') }}"
+                                   class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                                   placeholder="Enter your full name">
                         </div>
                     </div>
 
@@ -65,7 +62,7 @@
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
                                 <i class="fa fa-envelope text-white/40"></i>
                             </span>
-                            <input type="email" name="email" required 
+                            <input type="email" name="email" required value="{{ old('email') }}"
                                    class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                                    placeholder="Enter your email">
                         </div>
@@ -73,14 +70,27 @@
 
                     <!-- Phone -->
                     <div>
-                        <label class="block text-sm font-medium text-white/80 mb-2">Phone Number</label>
+                        <label class="block text-sm font-medium text-white/80 mb-2">Phone Number (Optional)</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
                                 <i class="fa fa-phone text-white/40"></i>
                             </span>
-                            <input type="tel" name="phone" required 
+                            <input type="tel" name="phone" value="{{ old('phone') }}"
                                    class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                                    placeholder="Enter your phone number">
+                        </div>
+                    </div>
+
+                    <!-- Country -->
+                    <div>
+                        <label class="block text-sm font-medium text-white/80 mb-2">Country (Optional)</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
+                                <i class="fa fa-globe text-white/40"></i>
+                            </span>
+                            <input type="text" name="country" value="{{ old('country') }}"
+                                   class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                                   placeholder="Enter your country">
                         </div>
                     </div>
 
@@ -93,7 +103,7 @@
                             </span>
                             <input type="password" name="password" required 
                                    class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                                   placeholder="Create a password">
+                                   placeholder="Create a password (min 8 characters)">
                         </div>
                     </div>
 

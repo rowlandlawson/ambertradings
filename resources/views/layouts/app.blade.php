@@ -31,7 +31,7 @@
             <!-- Animated Logo -->
             <div class="relative mb-8">
                 <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center animate-pulse">
-                    <img src="{{ asset('images/logo_color.png') }}" alt="" class="w-full h-full object-contain">
+                    <img src="{{ asset('images/logo.webp') }}" alt="" class="w-full h-full object-contain">
                 </div>
                 <!-- Spinning ring -->
                 <div class="absolute inset-0 w-20 h-20 mx-auto border-4 border-transparent border-t-orange-500 rounded-full animate-spin"></div>

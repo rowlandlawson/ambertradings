@@ -4,7 +4,7 @@
             <!-- Logo -->
             <div class="flex-shrink-0">
                 <a href="{{ route('home') }}">
-                    <img id="navLogo" src="{{ asset('images/logo_color.png') }}" alt="Amber Tradings" class="h-8 sm:h-10 lg:h-12 transition-all duration-300">
+                    <img id="navLogo" src="{{ asset('images/logo.webp') }}" alt="Amber Tradings" class="h-8 sm:h-10 lg:h-12 transition-all duration-300">
                 </a>
             </div>
             
@@ -74,9 +74,16 @@
                     </li>
                     
                     <li class="ml-4">
+                        @auth
+                        <a href="{{ route('dashboard.index') }}" class="inline-flex items-center gap-2 px-7 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:-translate-y-0.5 transition-all duration-300">
+                            <i class="fas fa-th-large"></i>
+                            DASHBOARD
+                        </a>
+                        @else
                         <a href="{{ route('login') }}" class="inline-block px-7 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:-translate-y-0.5 transition-all duration-300">
                             LOGIN
                         </a>
+                        @endauth
                     </li>
                 </ul>
             </nav>
@@ -134,9 +141,16 @@
                     <a href="{{ route('contact') }}" class="block py-4 text-white/85 hover:text-white border-b border-white/10 transition-colors">Contact Us</a>
                 </li>
                 <li class="mt-6">
+                    @auth
+                    <a href="{{ route('dashboard.index') }}" class="flex items-center justify-center gap-2 w-full py-4 text-center text-white font-semibold bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg">
+                        <i class="fas fa-th-large"></i>
+                        DASHBOARD
+                    </a>
+                    @else
                     <a href="{{ route('login') }}" class="block w-full py-4 text-center text-white font-semibold bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg">
                         LOGIN
                     </a>
+                    @endauth
                 </li>
             </ul>
         </div>
