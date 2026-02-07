@@ -6,10 +6,13 @@
 <!-- Hero Section -->
 <section class="relative min-h-screen flex items-center pt-24 sm:pt-32 pb-16 sm:pb-20 overflow-hidden bg-slate-950">
     <!-- Background Image -->
-    <div class="absolute inset-0">
-        <img src="{{ asset('images/hero-bg.webp') }}" alt="" class="w-full h-full object-cover object-center opacity-60 animate-hero-zoom">
-        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
-    </div>
+   <div class="absolute inset-0">
+    <video autoplay muted playsinline class="w-full h-full object-cover object-center opacity-60">
+        <source src="{{ asset('videos/herobg.mp4') }}" type="video/mp4">
+        <source src="{{ asset('videos/herobg.webm') }}" type="video/webm">
+    </video>
+    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent"></div>
+</div>
     
     <div class="container mx-auto px-4 sm:px-6 relative z-10">
         <div class="max-w-4xl mx-auto text-center text-white">
@@ -54,36 +57,45 @@
 <section class="py-16 sm:py-24 bg-white">
     <div class="container mx-auto px-4 sm:px-6">
         <div class="text-center mb-10 sm:mb-16">
-            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-3 sm:mb-4">Why Choose Amber Tradings</h2>
-            <p class="text-base sm:text-lg text-slate-600">Industry-leading features for serious traders</p>
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-3 sm:mb-4">Why Amber Group</h2>
+            <p class="text-base sm:text-lg text-slate-600">Your bridge between traditional and digital finance</p>
         </div>
         
-        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             <!-- Feature 1 -->
-            <div class="group p-6 sm:p-10 bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-                <div class="w-20 h-20 mb-6 mx-auto flex items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-indigo-100">
-                    <i class="fa fa-shield text-4xl text-orange-500"></i>
+            <div class="group p-6 bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-16 h-16 mb-6 mx-auto flex items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-indigo-100">
+                    <i class="fa fa-line-chart text-3xl text-orange-500"></i>
                 </div>
-                <h4 class="text-xl font-semibold text-slate-900 mb-4 text-center">Secure Trading</h4>
-                <p class="text-slate-600 text-center leading-relaxed">Your funds are protected with industry-leading security measures and segregated accounts.</p>
+                <h4 class="text-lg font-semibold text-slate-900 mb-4 text-center">Investing in digital assets</h4>
+                <p class="text-slate-600 text-sm text-center leading-relaxed">Trusted by top-tier institutional and individual investors, Amber Premium offers bespoke digital assets investment and portfolio management solutions catered to clients' specific needs.</p>
             </div>
             
             <!-- Feature 2 -->
-            <div class="group p-6 sm:p-10 bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-                <div class="w-20 h-20 mb-6 mx-auto flex items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-indigo-100">
-                    <i class="fa fa-line-chart text-4xl text-orange-500"></i>
+            <div class="group p-6 bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-16 h-16 mb-6 mx-auto flex items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-indigo-100">
+                    <i class="fa fa-users text-3xl text-orange-500"></i>
                 </div>
-                <h4 class="text-xl font-semibold text-slate-900 mb-4 text-center">Advanced Analytics</h4>
-                <p class="text-slate-600 text-center leading-relaxed">Access powerful trading tools, real-time charts, and market analysis to make informed decisions.</p>
+                <h4 class="text-lg font-semibold text-slate-900 mb-4 text-center">Institutional-grade digital asset management</h4>
+                <p class="text-slate-600 text-sm text-center leading-relaxed">Amber boasts an expansive and exceptionally skilled trading team, recognized as one of the largest and most proficient in the industry. Through in-depth market analysis and quantitative strategies, we help clients capitalize on opportunities to achieve stable growth of their crypto holdings.</p>
             </div>
             
             <!-- Feature 3 -->
-            <div class="group p-6 sm:p-10 bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-                <div class="w-20 h-20 mb-6 mx-auto flex items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-indigo-100">
-                    <i class="fa fa-users text-4xl text-orange-500"></i>
+            <div class="group p-6 bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-16 h-16 mb-6 mx-auto flex items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-indigo-100">
+                    <i class="fa fa-tint text-3xl text-orange-500"></i>
                 </div>
-                <h4 class="text-xl font-semibold text-slate-900 mb-4 text-center">Expert Support</h4>
-                <p class="text-slate-600 text-center leading-relaxed">Our team of professionals is available 24/5 to assist you with any trading needs.</p>
+                <h4 class="text-lg font-semibold text-slate-900 mb-4 text-center">Accessing more liquidity</h4>
+                <p class="text-slate-600 text-sm text-center leading-relaxed">As a top liquidity provider, Amber provides liquidity solutions to leading projects and institutions globally. Enjoy best-in-class trading execution to adapt quickly to market shifts at minimal cost.</p>
+            </div>
+
+             <!-- Feature 4 -->
+            <div class="group p-6 bg-white rounded-2xl shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
+                <div class="w-16 h-16 mb-6 mx-auto flex items-center justify-center rounded-2xl bg-gradient-to-br from-orange-100 to-indigo-100">
+                    <i class="fa fa-server text-3xl text-orange-500"></i>
+                </div>
+                <h4 class="text-lg font-semibold text-slate-900 mb-4 text-center">Robust crypto infrastructure support</h4>
+                <p class="text-slate-600 text-sm text-center leading-relaxed">Amber provides scalable, all-in-one infrastructure solutions to power the growth of digital businesses. Our reliable and customizable infrastructure support enables clients to focus on core product development while meeting dynamic computing needs.</p>
             </div>
         </div>
     </div>
@@ -193,39 +205,44 @@
     </div>
 </section>
 
-<!-- Licensed and Regulated Section -->
+<!-- Commitment To Excellence Section -->
 <section class="py-16 sm:py-24 bg-white">
     <div class="container mx-auto px-4 sm:px-6">
         <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             <!-- Content -->
             <div>
                 <h2 class="text-3xl sm:text-4xl font-bold text-slate-900 mb-6">
-                    Trust and Compliance at Our Core
+                    Commitment To Excellence
                 </h2>
-                <p class="text-lg text-slate-600 leading-relaxed mb-6">
-                    Amber Tradings operates by the book and complies with all state and federal regulations. We also provide insight into the investment landscape for the year ahead from global and regional perspectives.
-                </p>
-                <div class="flex flex-wrap gap-4">
-                    <div class="flex items-center gap-2 text-slate-700">
-                        <i class="fa fa-check-circle text-green-500"></i>
-                        <span>Fully Regulated</span>
+                <div class="flex flex-col gap-6">
+                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-orange-200 transition-colors">
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Proven Track Record: Recognized for Excellence</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Uncover our exceptional accomplishments and explore our impressive awards collection.
+                        </p>
                     </div>
-                    <div class="flex items-center gap-2 text-slate-700">
-                        <i class="fa fa-check-circle text-green-500"></i>
-                        <span>Client Fund Protection</span>
+                    
+                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-orange-200 transition-colors">
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Rigorous Independent Security Verification</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Experts confirm we exceed all protection standards to guard your wealth.
+                        </p>
                     </div>
-                    <div class="flex items-center gap-2 text-slate-700">
-                        <i class="fa fa-check-circle text-green-500"></i>
-                        <span>Transparent Operations</span>
+
+                    <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-orange-200 transition-colors">
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Our Licensing and Registration</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Regulatory compliance through extensive licensing and registrations for fully compliant and trusted operations.
+                        </p>
                     </div>
                 </div>
             </div>
-            <!-- Certificate Image -->
+            <!-- Certificate Image/Graphic -->
             <div class="flex justify-center lg:justify-end">
                 <div class="relative">
-                    <img src="{{ asset('images/cert1.webp') }}" alt="License Certificate" class="rounded-2xl shadow-2xl max-w-md w-full">
-                    <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fa fa-shield text-3xl text-white"></i>
+                    <img src="{{ asset('images/cert1.webp') }}" alt="License Certificate" class="rounded-2xl shadow-xl max-w-md w-full border-8 border-white">
+                    <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg animate-bounce-slow">
+                        <i class="fa fa-trophy text-4xl text-white"></i>
                     </div>
                 </div>
             </div>
@@ -299,6 +316,7 @@
         </div>
     </div>
 </section>
+
 @endsection
 
 @section('styles')

@@ -38,6 +38,8 @@ class DashboardUpdated extends Mailable
             'investment_added' => 'New Investment Added to Your Account',
             'investment_updated' => 'Your Investment Has Been Updated',
             'profit_credited' => 'Profit Has Been Credited to Your Account',
+            'deposit_approved' => 'Deposit Approved',
+            'deposit_rejected' => 'Deposit Request Rejected',
             default => 'Your Dashboard Has Been Updated',
         };
 

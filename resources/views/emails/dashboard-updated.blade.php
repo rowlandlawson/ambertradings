@@ -101,7 +101,7 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>🌟 Amber Tradings</h1>
+            <p>Amber Tradings</p>
         </div>
         
         <div class="content">
@@ -116,6 +116,10 @@
                     One of your investments has been updated.
                 @elseif($updateType === 'profit_credited')
                     Congratulations! Profit has been credited to your account.
+                @elseif($updateType === 'deposit_approved')
+                    Your deposit request has been approved and your balance updated.
+                @elseif($updateType === 'deposit_rejected')
+                    Your deposit request has been rejected. Please see details below.
                 @else
                     Your dashboard has been updated with new information.
                 @endif
@@ -126,8 +130,8 @@
                 
                 @foreach($updateDetails as $label => $value)
                 <div class="update-item">
-                    <span class="update-label">{{ $label }}</span>
-                    <span class="update-value">{{ $value }}</span>
+                    <span class="update-label">{{ $label }}: </span>
+                    <span class="update-value">{{ $value }} </span>
                 </div>
                 @endforeach
                 

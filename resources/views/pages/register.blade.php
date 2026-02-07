@@ -101,9 +101,13 @@
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
                                 <i class="fa fa-lock text-white/40"></i>
                             </span>
-                            <input type="password" name="password" required 
-                                   class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                            <input type="password" name="password" id="reg-password" required 
+                                   class="w-full pl-12 pr-12 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                                    placeholder="Create a password (min 8 characters)">
+                            <button type="button" onclick="togglePassword('reg-password', this)" 
+                                    class="absolute inset-y-0 right-0 pr-4 flex items-center text-white/40 hover:text-white/70 transition-colors">
+                                <i class="fa fa-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -114,9 +118,13 @@
                             <span class="absolute inset-y-0 left-0 pl-4 flex items-center">
                                 <i class="fa fa-lock text-white/40"></i>
                             </span>
-                            <input type="password" name="password_confirmation" required 
-                                   class="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                            <input type="password" name="password_confirmation" id="reg-password-confirm" required 
+                                   class="w-full pl-12 pr-12 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                                    placeholder="Confirm your password">
+                            <button type="button" onclick="togglePassword('reg-password-confirm', this)" 
+                                    class="absolute inset-y-0 right-0 pr-4 flex items-center text-white/40 hover:text-white/70 transition-colors">
+                                <i class="fa fa-eye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -124,7 +132,7 @@
                     <div class="flex items-start gap-3">
                         <input type="checkbox" name="terms" required class="w-5 h-5 mt-0.5 rounded border-white/20 bg-white/10 text-orange-500 focus:ring-orange-500">
                         <label class="text-sm text-white/70">
-                            I agree to the <a href="#" class="text-orange-400 hover:underline">Terms of Service</a> and <a href="#" class="text-orange-400 hover:underline">Privacy Policy</a>
+                            I agree to the <a href="{{ route('terms-conditions') }}" target="_blank" class="text-orange-400 hover:underline">Terms of Service</a> and <a href="{{ route('terms-conditions') }}" target="_blank" class="text-orange-400 hover:underline">Privacy Policy</a>
                         </label>
                     </div>
 
@@ -143,7 +151,7 @@
                 </div>
 
                 <!-- Social Register -->
-                <div class="grid grid-cols-2 gap-4">
+                <!-- <div class="grid grid-cols-2 gap-4">
                     <button class="flex items-center justify-center gap-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors">
                         <i class="fa fa-google"></i>
                         <span>Google</span>
@@ -152,7 +160,7 @@
                         <i class="fa fa-apple"></i>
                         <span>Apple</span>
                     </button>
-                </div>
+                </div> -->
 
                 <!-- Login Link -->
                 <p class="text-center mt-8 text-white/70">
@@ -176,3 +184,21 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+function togglePassword(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
+@endpush

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DepositRequest;
 use App\Models\Investment;
 use App\Models\InvestmentPackage;
+use App\Models\InvestmentTopup;
 use App\Models\PaymentMethod;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
@@ -30,13 +31,21 @@ class DashboardController extends Controller
             ->with('package')
             ->orderBy('created_at', 'desc')
             ->get();
+        
+        // Calculate total profit from all investments (profit - loss)
+        $allInvestments = Investment::where('user_id', $user->id)->get();
+        $totalProfit = $allInvestments->sum('withdrawable_profit') ?? 0;
+        $totalLoss = $allInvestments->sum('loss') ?? 0;
+        $netProfit = $totalProfit - $totalLoss;
             
         $stats = [
             'balance' => $user->balance,
             'total_invested' => $user->total_invested,
-            'total_profit' => $user->total_profit,
+            'total_profit' => $netProfit,
+            'total_profit_raw' => $totalProfit,
+            'total_loss' => $totalLoss,
             'active_investments' => $activeInvestments->count(),
-            'total_investments' => Investment::where('user_id', $user->id)->count(),
+            'total_investments' => $allInvestments->count(),
         ];
 
         return view('dashboard.index', compact('user', 'recentTransactions', 'activeInvestments', 'stats'));
@@ -99,6 +108,8 @@ class DashboardController extends Controller
             'type' => $package->name,
             'amount' => $amount,
             'profit' => 0,
+            'withdrawable_profit' => 0,
+            'loss' => 0,
             'roi_percentage' => $package->roi_percentage,
             'status' => 'active',
             'start_date' => now(),
@@ -176,8 +187,114 @@ class DashboardController extends Controller
             ->with('package')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+        
+        // Calculate total profit from all investments (profit - loss)
+        $allInvestments = Investment::where('user_id', $user->id)->get();
+        $totalProfit = $allInvestments->sum('withdrawable_profit') ?? 0;
+        $totalLoss = $allInvestments->sum('loss') ?? 0;
+        $netProfit = $totalProfit - $totalLoss;
+        
+        $stats = [
+            'total_profit' => $netProfit,
+            'total_profit_raw' => $totalProfit,
+            'total_loss' => $totalLoss,
+        ];
 
-        return view('dashboard.investments', compact('user', 'investments'));
+        return view('dashboard.investments', compact('user', 'investments', 'stats'));
+    }
+
+    /**
+     * Withdraw profit from investment to wallet.
+     */
+    public function withdrawProfit(Request $request, $investmentId)
+    {
+        $user = User::find(Auth::id()); // Fetch fresh user instance
+        $investment = Investment::where('id', $investmentId)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        if (!$investment->hasWithdrawableProfit()) {
+            return back()->with('error', 'No profit available to withdraw from this investment.');
+        }
+
+        $profitAmount = $investment->withdrawable_profit;
+
+        if ($profitAmount <= 0) {
+             return back()->with('error', 'Profit amount must be greater than zero.');
+        }
+
+        // Move profit to user's wallet
+        $user->balance += $profitAmount;
+        $user->total_profit += $profitAmount; // Add to lifetime accumulated profit
+        $user->save();
+
+        // Reset investment withdrawable profit
+        $investment->update(['withdrawable_profit' => 0]);
+
+        // Create transaction record
+        Transaction::create([
+            'user_id' => $user->id,
+            'type' => 'profit_withdrawal',
+            'amount' => $profitAmount,
+            'status' => 'completed',
+            'description' => 'Profit withdrawal from ' . $investment->type . ' investment',
+            'reference' => Transaction::generateReference(),
+        ]);
+
+        return back()->with('success', 'Profit of $' . number_format($profitAmount, 2) . ' has been withdrawn to your wallet!');
+    }
+
+    /**
+     * Top up an existing investment.
+     */
+    public function topUpInvestment(Request $request, $investmentId)
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:1'],
+        ]);
+
+        $user = Auth::user();
+        $investment = Investment::where('id', $investmentId)
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->firstOrFail();
+
+        $amount = $validated['amount'];
+
+        // Check if user has sufficient balance
+        if ($user->balance < $amount) {
+            return back()->with('error', 'Insufficient balance! You need $' . number_format($amount, 2) . ' but only have $' . number_format($user->balance, 2) . '.');
+        }
+
+        // Deduct from user balance
+        $user->balance -= $amount;
+        $user->total_invested += $amount;
+        $user->save();
+
+        // Add to investment amount
+        $investment->amount += $amount;
+        $investment->save();
+
+        // Record the top-up
+        InvestmentTopup::create([
+            'investment_id' => $investment->id,
+            'user_id' => $user->id,
+            'amount' => $amount,
+            'status' => 'completed',
+            'notes' => 'Top-up for ' . $investment->type . ' investment',
+        ]);
+
+        // Create transaction record
+        Transaction::create([
+            'user_id' => $user->id,
+            'type' => 'investment_topup',
+            'amount' => $amount,
+            'status' => 'completed',
+            'description' => 'Top-up for ' . $investment->type . ' investment',
+            'reference' => Transaction::generateReference(),
+        ]);
+
+        return back()->with('success', 'Investment topped up with $' . number_format($amount, 2) . ' successfully!');
     }
 
     /**

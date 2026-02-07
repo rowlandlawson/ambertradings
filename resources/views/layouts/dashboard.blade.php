@@ -147,16 +147,8 @@
             @endif
         </nav>
         
-        <!-- Logout at Bottom -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-medium">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Sign Out</span>
-                </button>
-            </form>
-        </div>
+        <!-- Logout at Bottom (Removed) -->
+        <!-- <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100"></div> -->
     </aside>
     
     <!-- Main Content -->
@@ -165,9 +157,25 @@
         <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
             <div class="flex items-center justify-between px-6 py-4">
                 <!-- Mobile Menu Button -->
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg mr-2">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
+                
+                <!-- Mobile Actions (Beside Hamburger) -->
+                <div class="flex items-center gap-2 lg:hidden">
+                    <!-- Go to Website -->
+                    <a href="{{ route('home') }}" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all" title="Go to Website">
+                        <i class="fas fa-globe text-lg"></i>
+                    </a>
+                    
+                    <!-- Sign Out -->
+                    <form action="{{ route('logout') }}" method="POST" class="inline-block">
+                        @csrf
+                        <button type="submit" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-all" title="Sign Out">
+                            <i class="fas fa-sign-out-alt text-lg"></i>
+                        </button>
+                    </form>
+                </div>
                 
                 <!-- Page Title -->
                 <div class="hidden lg:block">
@@ -182,10 +190,22 @@
                 
                 <!-- Right Actions -->
                 <div class="flex items-center gap-4">
-                    <a href="{{ route('home') }}" class="text-sm text-gray-500 hover:text-blue-600 hidden md:inline-flex items-center gap-2">
-                        <i class="fas fa-globe"></i>
-                        Go to Main Website
-                    </a>
+                    <!-- Desktop Actions (Hidden on Mobile) -->
+                    <div class="hidden lg:flex items-center gap-4">
+                        <!-- Go to Website -->
+                        <a href="{{ route('home') }}" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all" title="Go to Website">
+                            <i class="fas fa-globe text-lg"></i>
+                        </a>
+                        
+                        <!-- Sign Out -->
+                        <form action="{{ route('logout') }}" method="POST" class="inline-block">
+                            @csrf
+                            <button type="submit" class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-all" title="Sign Out">
+                                <i class="fas fa-sign-out-alt text-lg"></i>
+                            </button>
+                        </form>
+                    </div>
+
                     <div class="w-10 h-10 rounded-full gradient-blue flex items-center justify-center text-white font-bold">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
@@ -194,12 +214,53 @@
         </header>
         
         <!-- Page Content -->
-        <div class="p-6">
+        <div class="p-4 lg:p-6">
             @yield('content')
         </div>
     </main>
     
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        window.Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        @if(session('success'))
+            Toast.fire({
+                icon: 'success',
+                title: "{{ session('success') }}"
+            });
+        @endif
+
+        @if(session('error'))
+            Toast.fire({
+                icon: 'error',
+                title: "{{ session('error') }}"
+            });
+        @endif
+        
+        @if(session('info'))
+            Toast.fire({
+                icon: 'info',
+                title: "{{ session('info') }}"
+            });
+        @endif
+        
+        @if(session('warning'))
+            Toast.fire({
+                icon: 'warning',
+                title: "{{ session('warning') }}"
+            });
+        @endif
+        
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');

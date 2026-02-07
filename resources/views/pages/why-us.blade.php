@@ -10,6 +10,11 @@
         <div class="absolute inset-0 bg-gradient-to-r from-slate-900/90 to-slate-900/70"></div>
     </div>
     <div class="container mx-auto px-4 sm:px-6 text-center relative z-10">
+         <nav class="text-sm text-white/60 mb-6">
+            <a href="{{ route('home') }}" class="hover:text-orange-500 transition-colors">Home</a>
+            <span class="mx-2">|</span>
+            <span class="text-white">Why Choose Us</span>
+        </nav>
         <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">Why Choose Amber Tradings</h1>
         <p class="text-lg sm:text-xl text-white/80 max-w-3xl mx-auto">
             Discover what sets us apart from the competition

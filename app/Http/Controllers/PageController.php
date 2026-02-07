@@ -41,6 +41,11 @@ class PageController extends Controller
         return view('pages.faq');
     }
 
+    public function termsConditions()
+    {
+        return view('pages.terms-conditions');
+    }
+
     public function portfolio()
     {
         return view('pages.portfolio');

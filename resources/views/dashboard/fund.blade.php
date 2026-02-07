@@ -235,7 +235,10 @@
     
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
-            alert('Address copied to clipboard!');
+            Toast.fire({
+                icon: 'success',
+                title: 'Address copied to clipboard!'
+            });
         });
     }
 </script>

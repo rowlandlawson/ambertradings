@@ -83,9 +83,9 @@
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
     
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+    <aside id="sidebar" class="fixed top-0 left-0 z-50 h-full w-72 bg-white border-r border-gray-200 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
         <!-- Logo -->
-        <div class="p-6 border-b border-gray-100">
+        <div class="p-6 border-b border-gray-100 shrink-0">
             <a href="{{ route('home') }}" class="flex items-center gap-3">
                 <img src="{{ asset('images/logo.webp') }}" alt="Amber Tradings" class="h-10 object-contain">
             </a>
@@ -95,25 +95,31 @@
         </div>
         
         <!-- Admin Profile -->
-        <div class="p-6 border-b border-gray-100">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-full gradient-purple flex items-center justify-center text-white font-bold text-xl">
+        <div class="p-6 border-b border-gray-100 shrink-0">
+            <a href="{{ route('admin.profile') }}" class="flex items-center gap-4 hover:bg-gray-50 transition-colors -m-2 p-2 rounded-xl group">
+                <div class="w-14 h-14 rounded-full gradient-purple flex items-center justify-center text-white font-bold text-xl group-hover:scale-105 transition-transform">
                     {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-gray-900 truncate">{{ auth()->user()->name }}</p>
+                    <p class="font-semibold text-gray-900 truncate group-hover:text-purple-600 transition-colors">{{ auth()->user()->name }}</p>
                     <p class="text-sm text-purple-600 font-medium">Administrator</p>
                 </div>
-            </div>
+                <i class="fas fa-chevron-right text-gray-300 group-hover:text-purple-400"></i>
+            </a>
         </div>
         
         <!-- Navigation -->
-        <nav class="p-4 space-y-1">
+        <nav class="p-4 space-y-1 flex-1 overflow-y-auto">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-3">Admin Menu</p>
             
             <a href="{{ route('admin.index') }}" class="sidebar-link {{ request()->routeIs('admin.index') ? 'active' : '' }}">
                 <i class="fas fa-th-large"></i>
                 <span>Dashboard</span>
+            </a>
+
+            <a href="{{ route('admin.profile') }}" class="sidebar-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}">
+                <i class="fas fa-user-cog"></i>
+                <span>Profile Settings</span>
             </a>
             
             <a href="{{ route('admin.users') }}" class="sidebar-link {{ request()->routeIs('admin.users') || request()->routeIs('admin.user-detail') ? 'active' : '' }}">
@@ -146,7 +152,7 @@
         </nav>
         
         <!-- Logout at Bottom -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+        <div class="p-4 border-t border-gray-100 shrink-0">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-medium">
@@ -191,26 +197,52 @@
         </header>
         
         <!-- Alert Messages -->
-        @if(session('success'))
-        <div class="mx-6 mt-6">
-            <div class="p-4 rounded-xl bg-green-50 border border-green-200 text-green-800 flex items-start gap-3">
-                <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
-                <p>{{ session('success') }}</p>
-            </div>
-        </div>
-        @endif
-        
-        @if(session('error'))
-        <div class="mx-6 mt-6">
-            <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3">
-                <i class="fas fa-exclamation-circle text-red-500 mt-0.5"></i>
-                <p>{{ session('error') }}</p>
-            </div>
-        </div>
-        @endif
+        <!-- SweetAlert2 for Toast Notifications -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+        window.Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+            @if(session('success'))
+                Toast.fire({
+                    icon: 'success',
+                    title: "{{ session('success') }}"
+                });
+            @endif
+
+            @if(session('error'))
+                Toast.fire({
+                    icon: 'error',
+                    title: "{{ session('error') }}"
+                });
+            @endif
+            
+            @if(session('info'))
+                Toast.fire({
+                    icon: 'info',
+                    title: "{{ session('info') }}"
+                });
+            @endif
+            
+            @if(session('warning'))
+                Toast.fire({
+                    icon: 'warning',
+                    title: "{{ session('warning') }}"
+                });
+            @endif
+        </script>
         
         <!-- Page Content -->
-        <div class="p-6">
+        <div class="p-4 lg:p-6">
             @yield('content')
         </div>
     </main>

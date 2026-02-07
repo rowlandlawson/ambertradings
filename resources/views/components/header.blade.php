@@ -73,18 +73,15 @@
                         </a>
                     </li>
                     
-                    <li class="ml-4">
                         @auth
-                        <a href="{{ route('dashboard.index') }}" class="inline-flex items-center gap-2 px-7 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:-translate-y-0.5 transition-all duration-300">
+                        <a href="{{ route('dashboard.index') }}" class="inline-flex items-center justify-center w-10 h-10 text-white bg-slate-800 hover:bg-slate-700 rounded-full transition-all duration-300" title="Go to Dashboard">
                             <i class="fas fa-th-large"></i>
-                            DASHBOARD
                         </a>
                         @else
-                        <a href="{{ route('login') }}" class="inline-block px-7 py-3 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:-translate-y-0.5 transition-all duration-300">
-                            LOGIN
+                        <a href="{{ route('login') }}" class="px-6 py-2.5 text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg transition-all duration-300">
+                            Login
                         </a>
                         @endauth
-                    </li>
                 </ul>
             </nav>
         </div>
@@ -142,13 +139,14 @@
                 </li>
                 <li class="mt-6">
                     @auth
-                    <a href="{{ route('dashboard.index') }}" class="flex items-center justify-center gap-2 w-full py-4 text-center text-white font-semibold bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg">
+                    <a href="{{ route('dashboard.index') }}" class="flex items-center justify-center gap-2 w-full py-4 text-center text-white font-semibold bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
                         <i class="fas fa-th-large"></i>
-                        DASHBOARD
+                        <span>Dashboard</span>
                     </a>
                     @else
-                    <a href="{{ route('login') }}" class="block w-full py-4 text-center text-white font-semibold bg-gradient-to-r from-orange-500 to-red-500 rounded-full shadow-lg">
-                        LOGIN
+                    <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 w-full py-4 text-center text-white font-semibold bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl transition-colors">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
                     </a>
                     @endauth
                 </li>

@@ -55,16 +55,28 @@
         </div>
     </div>
     
-    <!-- Total Profit Card -->
+    <!-- Total Profit/Loss Card -->
     <div class="glass-card p-6">
         <div class="flex items-center justify-between mb-3">
-            <h4 class="text-gray-500 font-medium">Total Profit</h4>
+            <h4 class="text-gray-500 font-medium">{{ $stats['total_profit'] >= 0 ? 'Total Profit' : 'Total Loss' }}</h4>
             <i class="fas fa-info-circle text-gray-400"></i>
         </div>
+        @if($stats['total_profit'] >= 0)
         <p class="text-3xl font-bold text-green-600">+{{ number_format($stats['total_profit'], 2) }} <span class="text-lg text-gray-400">USD</span></p>
+        @else
+        <p class="text-3xl font-bold text-red-600">{{ number_format($stats['total_profit'], 2) }} <span class="text-lg text-gray-400">USD</span></p>
+        @endif
         <div class="mt-3 pt-3 border-t border-gray-100">
-            <p class="text-xs text-gray-400 uppercase">This Month</p>
-            <p class="text-sm font-medium text-green-600">+$0.00</p>
+            <div class="flex justify-between text-xs">
+                <div>
+                    <p class="text-gray-400 uppercase">Profit</p>
+                    <p class="text-sm font-medium text-green-600">+${{ number_format($stats['total_profit_raw'] ?? 0, 2) }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 uppercase">Loss</p>
+                    <p class="text-sm font-medium text-red-600">-${{ number_format($stats['total_loss'] ?? 0, 2) }}</p>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -174,19 +186,32 @@
         <div class="p-6">
             @if($activeInvestments->count() > 0)
             <div class="space-y-4">
-                @foreach($activeInvestments as $investment)
+            @foreach($activeInvestments as $investment)
+                @php
+                    $netProfit = $investment->net_profit;
+                    $isGain = $netProfit >= 0;
+                    $currentValue = $investment->current_value;
+                    $hasCapitalLoss = $investment->hasCapitalLoss();
+                @endphp
                 <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50">
-                    <div class="w-10 h-10 rounded-full gradient-blue flex items-center justify-center">
-                        <i class="fas fa-chart-line text-white"></i>
+                    <div class="w-10 h-10 rounded-full {{ $isGain ? 'gradient-blue' : 'bg-red-500' }} flex items-center justify-center">
+                        <i class="fas {{ $isGain ? 'fa-chart-line' : 'fa-arrow-trend-down' }} text-white"></i>
                     </div>
                     <div class="flex-1">
                         <p class="font-medium text-gray-900">{{ $investment->type }}</p>
                         <p class="text-xs text-gray-500">${{ number_format($investment->amount, 2) }} invested</p>
                     </div>
                     <div class="text-right">
-                        <p class="font-semibold text-green-600">+${{ number_format($investment->profit, 2) }}</p>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-600">
-                            Active
+                        @if($isGain)
+                        <p class="font-semibold text-green-600">+${{ number_format($netProfit, 2) }}</p>
+                        @else
+                        <p class="font-semibold text-red-600">-${{ number_format(abs($netProfit), 2) }}</p>
+                        @endif
+                        @if($hasCapitalLoss)
+                        <p class="text-xs text-red-500">Value: ${{ number_format($currentValue, 2) }}</p>
+                        @endif
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $isGain ? 'bg-blue-100 text-blue-600' : 'bg-red-100 text-red-600' }}">
+                            {{ $isGain ? 'Active' : 'Loss' }}
                         </span>
                     </div>
                 </div>

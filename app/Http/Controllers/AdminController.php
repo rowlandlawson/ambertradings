@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -44,6 +45,49 @@ class AdminController extends Controller
             'recentUsers', 
             'recentInvestments'
         ));
+    }
+
+    /**
+     * Show admin profile.
+     */
+    public function profile()
+    {
+        $user = auth()->user();
+        return view('admin.profile', compact('user'));
+    }
+
+    /**
+     * Update admin profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'current_password' => 'nullable|required_with:new_password',
+            'new_password' => 'nullable|min:8|confirmed',
+        ]);
+
+        // Verify current password if changing password
+        if ($request->filled('current_password')) {
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'The provided password does not match your current password.']);
+            }
+        }
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        // Update password if provided
+        if ($request->filled('new_password')) {
+            $user->password = Hash::make($request->new_password);
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Profile updated successfully!');
     }
 
     /**
@@ -184,7 +228,8 @@ class AdminController extends Controller
             'investment_package_id' => ['nullable', 'exists:investment_packages,id'],
             'type' => ['required', 'string', 'max:100'],
             'amount' => ['required', 'numeric', 'min:0'],
-            'profit' => ['nullable', 'numeric'], // Allow negative for losses
+            'withdrawable_profit' => ['nullable', 'numeric', 'min:0'],
+            'loss' => ['nullable', 'numeric', 'min:0'],
             'roi_percentage' => ['nullable', 'numeric'],
             'status' => ['required', 'in:pending,active,completed,cancelled'],
             'start_date' => ['nullable', 'date'],
@@ -195,45 +240,74 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         $investment = Investment::where('user_id', $id)->findOrFail($investmentId);
 
-        // Calculate profit difference (new profit - old profit)
-        $oldProfit = $investment->profit ?? 0;
-        $newProfit = $validated['profit'] ?? 0;
-        $profitDiff = $newProfit - $oldProfit;
+        // Calculate differences
         $amountDiff = $validated['amount'] - $investment->amount;
+        $oldProfit = $investment->withdrawable_profit ?? 0;
+        $oldLoss = $investment->loss ?? 0;
+        $newProfit = $validated['withdrawable_profit'] ?? 0;
+        $newLoss = $validated['loss'] ?? 0;
 
-        $investment->update($validated);
+        // Update investment with new values
+        $investment->update([
+            'investment_package_id' => $validated['investment_package_id'],
+            'type' => $validated['type'],
+            'amount' => $validated['amount'],
+            'withdrawable_profit' => $newProfit,
+            'loss' => $newLoss,
+            'roi_percentage' => $validated['roi_percentage'] ?? 0,
+            'status' => $validated['status'],
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'notes' => $validated['notes'],
+        ]);
 
-        // Update user totals
-        $user->total_invested += $amountDiff;
-        
-        if ($profitDiff != 0) {
-            $user->total_profit += $profitDiff;
-            $user->balance += $profitDiff; // Add profit to balance (or subtract if negative/loss)
-            
-            // Create transaction record for profit/loss
+        // Update user totals if amount changed
+        if ($amountDiff != 0) {
+            $user->total_invested += $amountDiff;
+            $user->save();
+        }
+
+        // Create transaction records for profit/loss changes
+        $profitDiff = $newProfit - $oldProfit;
+        $lossDiff = $newLoss - $oldLoss;
+
+        if ($profitDiff > 0) {
             Transaction::create([
                 'user_id' => $user->id,
-                'type' => $profitDiff > 0 ? 'profit' : 'loss',
-                'amount' => abs($profitDiff),
+                'type' => 'profit',
+                'amount' => $profitDiff,
                 'status' => 'completed',
-                'description' => $profitDiff > 0 
-                    ? 'Profit from ' . $validated['type'] . ' investment' 
-                    : 'Loss from ' . $validated['type'] . ' investment',
+                'description' => 'Profit added to ' . $validated['type'] . ' investment',
                 'reference' => Transaction::generateReference(),
             ]);
         }
-        $user->save();
 
-        // Send email notification
-        $profitLabel = $newProfit >= 0 ? 'Profit: +$' : 'Loss: -$';
-        $this->sendUpdateEmail($user, 'investment_updated', [
+        if ($lossDiff > 0) {
+            Transaction::create([
+                'user_id' => $user->id,
+                'type' => 'loss',
+                'amount' => $lossDiff,
+                'status' => 'completed',
+                'description' => 'Loss recorded for ' . $validated['type'] . ' investment',
+                'reference' => Transaction::generateReference(),
+            ]);
+        }
+
+        // Determine email notification content
+        $netProfit = $newProfit - $newLoss;
+        $updateDetails = [
             'Investment Type' => $validated['type'],
             'Amount' => '$' . number_format($validated['amount'], 2),
-            'Current ' . ($newProfit >= 0 ? 'Profit' : 'Loss') => ($newProfit >= 0 ? '+' : '-') . '$' . number_format(abs($newProfit), 2),
+            'Profit' => '+$' . number_format($newProfit, 2),
+            'Loss' => '-$' . number_format($newLoss, 2),
+            'Net' => ($netProfit >= 0 ? '+' : '-') . '$' . number_format(abs($netProfit), 2),
             'Status' => ucfirst($validated['status']),
-        ]);
+        ];
 
-        return back()->with('success', 'Investment updated successfully! User balance updated and email notification sent.');
+        // Send email notification
+        $this->sendUpdateEmail($user, 'investment_updated', $updateDetails);
+
+        return back()->with('success', 'Investment updated successfully! Email notification sent.');
     }
 
     /**
@@ -254,6 +328,8 @@ class AdminController extends Controller
 
         return back()->with('success', 'Investment deleted successfully!');
     }
+
+
 
     // ============================================
     // Investment Package Management
@@ -516,7 +592,7 @@ class AdminController extends Controller
             'Reason' => $deposit->admin_notes,
         ]);
 
-        return back()->with('success', 'Deposit request rejected.');
+        return redirect()->route('admin.deposits')->with('success', 'Deposit request rejected.');
     }
 }
 

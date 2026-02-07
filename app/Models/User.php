@@ -29,6 +29,10 @@ class User extends Authenticatable
         'country',
         'avatar',
         'is_active',
+        'verification_code',
+        'verification_expires_at',
+        'reset_code',
+        'reset_expires_at',
     ];
 
     /**
@@ -39,6 +43,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_code',
+        'reset_code',
     ];
 
     /**
@@ -55,6 +61,8 @@ class User extends Authenticatable
             'total_invested' => 'decimal:2',
             'total_profit' => 'decimal:2',
             'is_active' => 'boolean',
+            'verification_expires_at' => 'datetime',
+            'reset_expires_at' => 'datetime',
         ];
     }
 

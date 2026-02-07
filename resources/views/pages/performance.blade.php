@@ -11,17 +11,17 @@
     </div>
     <div class="container mx-auto px-4 sm:px-6 relative z-10">
         <div class="max-w-4xl mx-auto text-center">
+            <nav class="text-sm text-white/60">
+                <a href="{{ route('home') }}" class="hover:text-orange-500 transition-colors">Home</a>
+                <span class="mx-2">|</span>
+                <span class="text-white">Performance Statistics</span>
+            </nav>
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
                 Amber Tradings Performance <span class="text-orange-500">Statistics</span>
             </h1>
             <p class="text-lg sm:text-xl text-white/80 mb-8">
                 As an established authority in forex trading, Amber Tradings performance statistics are verified and published. Our aim is not only to reset the standards and benchmarks within the forex industry, but also to create awareness and deliver the highest levels of transparency to all our clients.
             </p>
-            <nav class="text-sm text-white/60">
-                <a href="{{ route('home') }}" class="hover:text-orange-500 transition-colors">Home</a>
-                <span class="mx-2">|</span>
-                <span class="text-white">Performance Statistics</span>
-            </nav>
         </div>
     </div>
 </section>

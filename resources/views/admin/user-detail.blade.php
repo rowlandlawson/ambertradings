@@ -95,6 +95,8 @@
         </div>
         
         <!-- Add Investment -->
+
+        <!-- Add Investment -->
         <div class="glass-card p-6">
             <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                 <i class="fas fa-plus-circle text-green-500"></i>
@@ -166,6 +168,27 @@
                 </button>
             </form>
         </div>
+
+        <!-- Danger Zone -->
+        <div class="glass-card p-6 border border-red-100">
+            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2 text-red-600">
+                <i class="fas fa-exclamation-triangle"></i>
+                Danger Zone
+            </h3>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="font-medium text-gray-900">Delete User Account</h4>
+                    <p class="text-sm text-gray-500">Permanently delete this user and all associated data.</p>
+                </div>
+                <form action="{{ route('admin.delete-user', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to PERMANENTLY delete this user? This action cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="px-4 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors border border-red-200">
+                        Delete User
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -180,30 +203,37 @@
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead>
-                    <tr class="text-left text-xs text-gray-500 uppercase border-b border-gray-200">
+                    <tr class="text-left text-xs text-gray-500 uppercase border-b border-gray-200 whitespace-nowrap">
                         <th class="pb-4 font-medium">Type</th>
                         <th class="pb-4 font-medium">Package</th>
                         <th class="pb-4 font-medium">Amount</th>
-                        <th class="pb-4 font-medium">Profit/Loss</th>
+                        <th class="pb-4 font-medium">Profit</th>
+                        <th class="pb-4 font-medium">Loss</th>
+                        <th class="pb-4 font-medium">Net</th>
                         <th class="pb-4 font-medium">Status</th>
-                        <th class="pb-4 font-medium">Update Profit/Loss</th>
+                        <th class="pb-4 font-medium">Update</th>
                         <th class="pb-4 font-medium">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($investments as $investment)
-                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors" id="investment-{{ $investment->id }}">
+                    @php
+                        $netProfit = ($investment->withdrawable_profit ?? 0) - ($investment->loss ?? 0);
+                    @endphp
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors whitespace-nowrap" id="investment-{{ $investment->id }}">
                         <td class="py-4 font-medium text-gray-900">{{ $investment->type }}</td>
                         <td class="py-4 text-gray-500">{{ $investment->package->name ?? 'Custom' }}</td>
                         <td class="py-4 text-gray-900">${{ number_format($investment->amount, 2) }}</td>
                         <td class="py-4">
-                            @if($investment->profit > 0)
-                            <span class="font-semibold text-green-600">+${{ number_format($investment->profit, 2) }}</span>
-                            @elseif($investment->profit < 0)
-                            <span class="font-semibold text-red-600">-${{ number_format(abs($investment->profit), 2) }}</span>
-                            @else
-                            <span class="font-semibold text-gray-400">$0.00</span>
-                            @endif
+                            <span class="font-semibold text-green-600">+${{ number_format($investment->withdrawable_profit ?? 0, 2) }}</span>
+                        </td>
+                        <td class="py-4">
+                            <span class="font-semibold text-red-600">-${{ number_format($investment->loss ?? 0, 2) }}</span>
+                        </td>
+                        <td class="py-4">
+                            <span class="font-semibold {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                {{ $netProfit >= 0 ? '+' : '' }}${{ number_format($netProfit, 2) }}
+                            </span>
                         </td>
                         <td class="py-4">
                             <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
@@ -226,13 +256,21 @@
                                 <input type="hidden" name="start_date" value="{{ $investment->start_date }}">
                                 <input type="hidden" name="end_date" value="{{ $investment->end_date }}">
                                 <input type="hidden" name="notes" value="{{ $investment->notes }}">
-                                <div class="flex items-center gap-1">
-                                    <span class="text-xs text-gray-500">$</span>
-                                    <input type="number" name="profit" step="0.01" value="{{ $investment->profit }}"
-                                        placeholder="Enter profit or -loss"
-                                        class="w-24 px-2 py-1.5 text-sm rounded-lg bg-gray-50 border border-gray-200 text-gray-900 focus:border-purple-500 outline-none">
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-xs text-green-600 font-medium">+$</span>
+                                        <input type="number" name="withdrawable_profit" step="0.01" min="0" value="{{ $investment->withdrawable_profit ?? 0 }}"
+                                            placeholder="Profit"
+                                            class="w-20 px-2 py-1 text-sm rounded-lg bg-green-50 border border-green-200 text-gray-900 focus:border-green-500 outline-none">
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-xs text-red-600 font-medium">-$</span>
+                                        <input type="number" name="loss" step="0.01" min="0" value="{{ $investment->loss ?? 0 }}"
+                                            placeholder="Loss"
+                                            class="w-20 px-2 py-1 text-sm rounded-lg bg-red-50 border border-red-200 text-gray-900 focus:border-red-500 outline-none">
+                                    </div>
                                 </div>
-                                <button type="submit" class="px-3 py-1.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
+                                <button type="submit" class="px-3 py-3 text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all">
                                     Update
                                 </button>
                             </form>
@@ -256,8 +294,7 @@
         <div class="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-100">
             <p class="text-sm text-blue-700">
                 <i class="fas fa-info-circle mr-2"></i>
-                <strong>How it works:</strong> Enter a positive value for profit (e.g., 150) or a negative value for loss (e.g., -50). 
-                The amount will be automatically added to or subtracted from the user's wallet balance.
+                <strong>How it works:</strong> Enter profit and loss values separately. If loss exceeds profit, the excess will be deducted from the investment principal. Users must click "Withdraw" in their dashboard to move profit to their wallet.
             </p>
         </div>
         @else
