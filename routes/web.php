@@ -67,6 +67,7 @@ Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(functi
     Route::put('/password', [DashboardController::class, 'updatePassword'])->name('password.update');
     Route::post('/investments/{investmentId}/withdraw-profit', [DashboardController::class, 'withdrawProfit'])->name('withdraw-profit');
     Route::post('/investments/{investmentId}/top-up', [DashboardController::class, 'topUpInvestment'])->name('top-up-investment');
+    Route::post('/investments/{investmentId}/end', [DashboardController::class, 'endInvestment'])->name('end-investment');
 });
 
 // Admin Dashboard (Auth required + Admin role)

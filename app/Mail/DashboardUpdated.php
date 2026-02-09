@@ -40,6 +40,8 @@ class DashboardUpdated extends Mailable
             'profit_credited' => 'Profit Has Been Credited to Your Account',
             'deposit_approved' => 'Deposit Approved',
             'deposit_rejected' => 'Deposit Request Rejected',
+            'low_balance_warning' => '⚠️ Action Required: Low Investment Balance',
+            'investment_paused' => '🛑 Important: Investment Trading Paused',
             default => 'Your Dashboard Has Been Updated',
         };
 

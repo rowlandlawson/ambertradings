@@ -137,30 +137,41 @@
                         @if($investment->status == 'active') bg-blue-100 text-blue-600
                         @elseif($investment->status == 'completed') bg-green-100 text-green-600
                         @elseif($investment->status == 'pending') bg-yellow-100 text-yellow-600
+                        @elseif($investment->status == 'paused') bg-orange-100 text-orange-600
                         @else bg-red-100 text-red-600 @endif">
                         <i class="fas fa-circle text-[6px]"></i>
                         {{ ucfirst($investment->status) }}
                     </span>
+                    @if($investment->status == 'paused')
+                    <p class="text-xs text-orange-600 mt-1">⚠️ Top up to resume</p>
+                    @endif
                 </span>
               </div>
               
               <div class="card-row" style="border: none; margin-top: 12px;">
                 <div style="display: flex; gap: 8px; width: 100%;">
-                  @if($investment->status == 'active')
+                  @if($investment->status == 'active' || $investment->status == 'paused')
                     <button type="button" onclick="openTopUpModal({{ $investment->id }}, '{{ $investment->type }}')" 
-                            class="px-4 py-2 bg-blue-100 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-200 transition-colors flex-1">
-                        <i class="fas fa-plus mr-1"></i>Top Up
+                            class="px-4 py-2 {{ $investment->status == 'paused' ? 'bg-orange-100 text-orange-600 hover:bg-orange-200' : 'bg-blue-100 text-blue-600 hover:bg-blue-200' }} text-sm font-medium rounded-lg transition-colors flex-1">
+                        <i class="fas fa-plus mr-1"></i>{{ $investment->status == 'paused' ? 'Top Up (Required)' : 'Top Up' }}
                     </button>
                   @endif
                   
-                  @if($investment->withdrawable_profit > 0)
-                    <form action="{{ route('dashboard.withdraw-profit', $investment->id) }}" method="POST" class="flex-1" style="width: 100%;">
-                        @csrf
-                        <button type="submit" onclick="return confirm('Withdraw ${{ number_format($investment->withdrawable_profit, 2) }} profit to your wallet?')"
-                                class="w-full px-4 py-2 bg-green-100 text-green-600 text-sm font-medium rounded-lg hover:bg-green-200 transition-colors">
-                            <i class="fas fa-wallet mr-1"></i>Withdraw
-                        </button>
-                    </form>
+                  @php
+                    $mobileNetProfit = ($investment->withdrawable_profit ?? 0) - ($investment->loss ?? 0);
+                  @endphp
+                  @if($mobileNetProfit > 0)
+                    <button type="button" onclick="openWithdrawModal({{ $investment->id }}, '{{ $investment->type }}', {{ $investment->withdrawable_profit ?? 0 }}, {{ $investment->loss ?? 0 }}, {{ $mobileNetProfit }})"
+                            class="w-full px-4 py-2 bg-green-100 text-green-600 text-sm font-medium rounded-lg hover:bg-green-200 transition-colors flex-1">
+                        <i class="fas fa-wallet mr-1"></i>Withdraw
+                    </button>
+                  @endif
+                  
+                  @if($investment->status == 'active')
+                    <button type="button" onclick="openEndInvestmentModal({{ $investment->id }}, '{{ $investment->type }}', {{ $investment->current_value }}, {{ $investment->amount }}, {{ $investment->withdrawable_profit ?? 0 }}, {{ $investment->loss ?? 0 }})"
+                            class="w-full px-4 py-2 bg-orange-100 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-200 transition-colors flex-1">
+                        <i class="fas fa-stop-circle mr-1"></i>End
+                    </button>
                   @endif
                 </div>
               </div>
@@ -241,30 +252,42 @@
                                 @if($investment->status == 'active') bg-blue-100 text-blue-600
                                 @elseif($investment->status == 'completed') bg-green-100 text-green-600
                                 @elseif($investment->status == 'pending') bg-yellow-100 text-yellow-600
+                                @elseif($investment->status == 'paused') bg-orange-100 text-orange-600
                                 @else bg-red-100 text-red-600 @endif">
                                 <i class="fas fa-circle text-[6px]"></i>
                                 {{ ucfirst($investment->status) }}
                             </span>
+                            @if($investment->status == 'paused')
+                            <p class="text-xs text-orange-600 mt-1">Top up required</p>
+                            @endif
                         </td>
                         <td class="py-4">
                             <div class="flex items-center gap-2">
-                                @if($investment->status == 'active')
+                                @if($investment->status == 'active' || $investment->status == 'paused')
                                 <!-- Top-up Button -->
                                 <button type="button" onclick="openTopUpModal({{ $investment->id }}, '{{ $investment->type }}')" 
-                                        class="px-4 py-2 bg-blue-100 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-200 transition-colors">
-                                    <i class="fas fa-plus mr-1"></i>Top Up
+                                        class="px-4 py-2 {{ $investment->status == 'paused' ? 'bg-orange-100 text-orange-600 hover:bg-orange-200' : 'bg-blue-100 text-blue-600 hover:bg-blue-200' }} text-sm font-medium rounded-lg transition-colors">
+                                    <i class="fas fa-plus mr-1"></i>{{ $investment->status == 'paused' ? 'Top Up!' : 'Top Up' }}
                                 </button>
                                 @endif
                                 
-                                @if($investment->withdrawable_profit > 0)
+                                @php
+                                    $desktopNetProfit = ($investment->withdrawable_profit ?? 0) - ($investment->loss ?? 0);
+                                @endphp
+                                @if($desktopNetProfit > 0)
                                 <!-- Withdraw Profit Button -->
-                                <form action="{{ route('dashboard.withdraw-profit', $investment->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" onclick="return confirm('Withdraw ${{ number_format($investment->withdrawable_profit, 2) }} profit to your wallet?')"
-                                            class="px-4 py-2 bg-green-100 text-green-600 text-sm font-medium rounded-lg hover:bg-green-200 transition-colors">
-                                        <i class="fas fa-wallet mr-1"></i>Withdraw
-                                    </button>
-                                </form>
+                                <button type="button" onclick="openWithdrawModal({{ $investment->id }}, '{{ $investment->type }}', {{ $investment->withdrawable_profit ?? 0 }}, {{ $investment->loss ?? 0 }}, {{ $desktopNetProfit }})"
+                                        class="px-4 py-2 bg-green-100 text-green-600 text-sm font-medium rounded-lg hover:bg-green-200 transition-colors">
+                                    <i class="fas fa-wallet mr-1"></i>Withdraw
+                                </button>
+                                @endif
+                                
+                                @if($investment->status == 'active')
+                                <!-- End Investment Button -->
+                                <button type="button" onclick="openEndInvestmentModal({{ $investment->id }}, '{{ $investment->type }}', {{ $investment->current_value }}, {{ $investment->amount }}, {{ $investment->withdrawable_profit ?? 0 }}, {{ $investment->loss ?? 0 }})"
+                                        class="px-4 py-2 bg-orange-100 text-orange-600 text-sm font-medium rounded-lg hover:bg-orange-200 transition-colors">
+                                    <i class="fas fa-stop-circle mr-1"></i>End
+                                </button>
                                 @endif
                             </div>
                         </td>
@@ -372,6 +395,149 @@
     </div>
 </div>
 
+<!-- Withdraw Profit Modal -->
+<div id="withdrawModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeWithdrawModal()"></div>
+        <div class="relative inline-block w-full max-w-md p-6 my-8 text-left align-middle bg-white rounded-2xl shadow-xl transform transition-all">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="fas fa-wallet text-green-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">Withdraw Profit</h3>
+                    <p class="text-sm text-gray-500" id="withdrawInvestmentName"></p>
+                </div>
+            </div>
+            
+            <!-- Profit Summary -->
+            <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Total Profit</p>
+                        <p class="text-lg font-bold text-green-600" id="withdrawTotalProfit">+$0.00</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase">Total Loss</p>
+                        <p class="text-lg font-bold text-red-600" id="withdrawTotalLoss">-$0.00</p>
+                    </div>
+                    <div class="border-l-2 border-gray-200">
+                        <p class="text-xs text-gray-500 uppercase">Net Profit</p>
+                        <p class="text-lg font-bold text-emerald-600" id="withdrawNetProfit">$0.00</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="withdrawForm" method="POST">
+                @csrf
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount to Withdraw</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">$</span>
+                        <input type="number" name="amount" id="withdrawAmount" step="0.01" min="0.01" required
+                               class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg font-semibold"
+                               placeholder="0.00">
+                    </div>
+                    <div class="flex justify-between mt-2">
+                        <p class="text-xs text-gray-500">Max: <span id="maxWithdrawAmount" class="font-semibold text-green-600">$0.00</span></p>
+                        <button type="button" onclick="setMaxWithdraw()" class="text-xs text-green-600 hover:text-green-700 font-semibold">
+                            Withdraw Max
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 mb-4">
+                    <p class="text-xs text-amber-700">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        You can only withdraw up to your net profit (profit minus loss). The withdrawn amount will be added to your wallet balance.
+                    </p>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeWithdrawModal()" 
+                            class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all">
+                        <i class="fas fa-check mr-2"></i>Confirm Withdrawal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- End Investment Confirmation Modal -->
+<div id="endInvestmentModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeEndInvestmentModal()"></div>
+        <div class="relative inline-block w-full max-w-md p-6 my-8 text-left align-middle bg-white rounded-2xl shadow-xl transform transition-all">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                    <i class="fas fa-stop-circle text-orange-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-900">End Investment</h3>
+                    <p class="text-sm text-gray-500" id="endInvestmentName"></p>
+                </div>
+            </div>
+            
+            <!-- Warning Message -->
+            <div class="bg-orange-50 rounded-xl p-4 mb-6 border border-orange-200">
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-exclamation-triangle text-orange-500 mt-0.5"></i>
+                    <div>
+                        <p class="font-semibold text-orange-800">Are you sure?</p>
+                        <p class="text-sm text-orange-700 mt-1">
+                            This action will close your investment and transfer all funds to your wallet. This cannot be undone.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Investment Summary -->
+            <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">Investment Summary</h4>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Principal Invested</span>
+                        <span class="font-semibold text-gray-900" id="endInvestmentPrincipal">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Total Profit</span>
+                        <span class="font-semibold text-green-600" id="endInvestmentProfit">+$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Total Loss</span>
+                        <span class="font-semibold text-red-600" id="endInvestmentLoss">-$0.00</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                        <div class="flex justify-between">
+                            <span class="font-semibold text-gray-700">Amount to Wallet</span>
+                            <span class="text-lg font-bold text-emerald-600" id="endInvestmentTotal">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="endInvestmentForm" method="POST">
+                @csrf
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeEndInvestmentModal()" 
+                            class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-medium rounded-xl hover:from-orange-600 hover:to-red-600 transition-all">
+                        <i class="fas fa-stop-circle mr-2"></i>End Investment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
@@ -387,12 +553,67 @@ function closeTopUpModal() {
     document.getElementById('topUpAmount').value = '';
 }
 
-// Close modal on Escape key
+</script>
+<script>
+// Withdraw Modal
+let currentMaxWithdraw = 0;
+
+function openWithdrawModal(investmentId, investmentType, totalProfit, totalLoss, netProfit) {
+    document.getElementById('withdrawModal').classList.remove('hidden');
+    document.getElementById('withdrawInvestmentName').textContent = investmentType + ' Investment';
+    document.getElementById('withdrawTotalProfit').textContent = '+$' + parseFloat(totalProfit).toFixed(2);
+    document.getElementById('withdrawTotalLoss').textContent = '-$' + parseFloat(totalLoss).toFixed(2);
+    document.getElementById('withdrawNetProfit').textContent = '$' + parseFloat(netProfit).toFixed(2);
+    document.getElementById('maxWithdrawAmount').textContent = '$' + parseFloat(netProfit).toFixed(2);
+    document.getElementById('withdrawForm').action = '/dashboard/investments/' + investmentId + '/withdraw-profit';
+    document.getElementById('withdrawAmount').value = '';
+    document.getElementById('withdrawAmount').max = netProfit;
+    currentMaxWithdraw = netProfit;
+    document.body.style.overflow = 'hidden';
+}
+
+function closeWithdrawModal() {
+    document.getElementById('withdrawModal').classList.add('hidden');
+    document.getElementById('withdrawAmount').value = '';
+    document.body.style.overflow = '';
+}
+
+function setMaxWithdraw() {
+    document.getElementById('withdrawAmount').value = currentMaxWithdraw.toFixed(2);
+}
+
+// Validate withdrawal amount
+document.getElementById('withdrawAmount').addEventListener('input', function() {
+    if (parseFloat(this.value) > currentMaxWithdraw) {
+        this.value = currentMaxWithdraw.toFixed(2);
+    }
+});
+
+// Close modals on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeTopUpModal();
+        closeWithdrawModal();
+        closeEndInvestmentModal();
     }
 });
+
+// End Investment Modal
+function openEndInvestmentModal(investmentId, investmentType, currentValue, principal, profit, loss) {
+    document.getElementById('endInvestmentModal').classList.remove('hidden');
+    document.getElementById('endInvestmentName').textContent = investmentType + ' Investment';
+    document.getElementById('endInvestmentPrincipal').textContent = '$' + parseFloat(principal).toFixed(2);
+    document.getElementById('endInvestmentProfit').textContent = '+$' + parseFloat(profit).toFixed(2);
+    document.getElementById('endInvestmentLoss').textContent = '-$' + parseFloat(loss).toFixed(2);
+    document.getElementById('endInvestmentTotal').textContent = '$' + parseFloat(currentValue).toFixed(2);
+    document.getElementById('endInvestmentForm').action = '/dashboard/investments/' + investmentId + '/end';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEndInvestmentModal() {
+    document.getElementById('endInvestmentModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
 </script>
 @endsection
 

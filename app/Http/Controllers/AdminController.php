@@ -95,7 +95,7 @@ class AdminController extends Controller
      */
     public function users(Request $request)
     {
-        $query = User::where('role', 'user');
+        $query = User::where('role', 'user')->with('investments');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -117,10 +117,21 @@ class AdminController extends Controller
     {
         $user = User::findOrFail($id);
         $investments = $user->investments()->with('package')->orderBy('created_at', 'desc')->get();
-        $transactions = $user->transactions()->orderBy('created_at', 'desc')->take(20)->get();
+        $transactions = $user->transactions()->orderBy('created_at', 'desc')->paginate(15);
         $packages = InvestmentPackage::where('is_active', true)->get();
 
         return view('admin.user-detail', compact('user', 'investments', 'transactions', 'packages'));
+    }
+
+    /**
+     * Delete user.
+     */
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
     }
 
     /**
@@ -228,10 +239,10 @@ class AdminController extends Controller
             'investment_package_id' => ['nullable', 'exists:investment_packages,id'],
             'type' => ['required', 'string', 'max:100'],
             'amount' => ['required', 'numeric', 'min:0'],
-            'withdrawable_profit' => ['nullable', 'numeric', 'min:0'],
-            'loss' => ['nullable', 'numeric', 'min:0'],
+            'add_profit' => ['nullable', 'numeric', 'min:0'],
+            'add_loss' => ['nullable', 'numeric', 'min:0'],
             'roi_percentage' => ['nullable', 'numeric'],
-            'status' => ['required', 'in:pending,active,completed,cancelled'],
+            'status' => ['required', 'in:pending,active,completed,cancelled,paused'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -242,20 +253,41 @@ class AdminController extends Controller
 
         // Calculate differences
         $amountDiff = $validated['amount'] - $investment->amount;
-        $oldProfit = $investment->withdrawable_profit ?? 0;
-        $oldLoss = $investment->loss ?? 0;
-        $newProfit = $validated['withdrawable_profit'] ?? 0;
-        $newLoss = $validated['loss'] ?? 0;
+        
+        // Get values to ADD (cumulative)
+        $profitToAdd = $validated['add_profit'] ?? 0;
+        $lossToAdd = $validated['add_loss'] ?? 0;
+        
+        // Calculate current value before update
+        $currentValueBeforeUpdate = $investment->current_value;
+        
+        // If current value is already zero or negative, block profit additions
+        if ($currentValueBeforeUpdate <= 0 && $profitToAdd > 0) {
+            return back()->with('error', 'Cannot add profit! Investment current value is zero. User must top up their investment first.');
+        }
+        
+        // Calculate new totals (add to existing)
+        $newTotalProfit = ($investment->withdrawable_profit ?? 0) + $profitToAdd;
+        $newTotalLoss = ($investment->loss ?? 0) + $lossToAdd;
+        
+        // Calculate new current value after update
+        $newCurrentValue = $validated['amount'] + $newTotalProfit - $newTotalLoss;
+        
+        // Determine status - if current value hits zero, pause the investment
+        $newStatus = $validated['status'];
+        if ($newCurrentValue <= 0 && $validated['status'] === 'active') {
+            $newStatus = 'paused';
+        }
 
         // Update investment with new values
         $investment->update([
             'investment_package_id' => $validated['investment_package_id'],
             'type' => $validated['type'],
             'amount' => $validated['amount'],
-            'withdrawable_profit' => $newProfit,
-            'loss' => $newLoss,
+            'withdrawable_profit' => $newTotalProfit,
+            'loss' => $newTotalLoss,
             'roi_percentage' => $validated['roi_percentage'] ?? 0,
-            'status' => $validated['status'],
+            'status' => $newStatus,
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'notes' => $validated['notes'],
@@ -267,47 +299,109 @@ class AdminController extends Controller
             $user->save();
         }
 
-        // Create transaction records for profit/loss changes
-        $profitDiff = $newProfit - $oldProfit;
-        $lossDiff = $newLoss - $oldLoss;
-
-        if ($profitDiff > 0) {
+        // Create transaction records for profit/loss additions
+        if ($profitToAdd > 0) {
             Transaction::create([
                 'user_id' => $user->id,
                 'type' => 'profit',
-                'amount' => $profitDiff,
+                'amount' => $profitToAdd,
                 'status' => 'completed',
                 'description' => 'Profit added to ' . $validated['type'] . ' investment',
                 'reference' => Transaction::generateReference(),
             ]);
         }
 
-        if ($lossDiff > 0) {
+        if ($lossToAdd > 0) {
             Transaction::create([
                 'user_id' => $user->id,
                 'type' => 'loss',
-                'amount' => $lossDiff,
+                'amount' => $lossToAdd,
                 'status' => 'completed',
                 'description' => 'Loss recorded for ' . $validated['type'] . ' investment',
                 'reference' => Transaction::generateReference(),
             ]);
         }
 
+        // Check for 20% threshold warning
+        $originalAmount = $validated['amount'];
+        $thresholdAmount = $originalAmount * 0.20;
+        $lowBalanceWarning = false;
+        
+        if ($newCurrentValue > 0 && $newCurrentValue <= $thresholdAmount && $currentValueBeforeUpdate > $thresholdAmount) {
+            // Current value just dropped to 20% or below - send warning email
+            $lowBalanceWarning = true;
+            $this->sendLowBalanceWarningEmail($user, $investment, $newCurrentValue, $originalAmount);
+        }
+        
+        // Check if investment was paused due to zero balance
+        $pausedDueToZero = false;
+        if ($newStatus === 'paused' && $validated['status'] === 'active') {
+            $pausedDueToZero = true;
+            $this->sendInvestmentPausedEmail($user, $investment);
+        }
+
         // Determine email notification content
-        $netProfit = $newProfit - $newLoss;
+        $netProfit = $newTotalProfit - $newTotalLoss;
         $updateDetails = [
             'Investment Type' => $validated['type'],
             'Amount' => '$' . number_format($validated['amount'], 2),
-            'Profit' => '+$' . number_format($newProfit, 2),
-            'Loss' => '-$' . number_format($newLoss, 2),
-            'Net' => ($netProfit >= 0 ? '+' : '-') . '$' . number_format(abs($netProfit), 2),
-            'Status' => ucfirst($validated['status']),
+            'Total Profit' => '+$' . number_format($newTotalProfit, 2),
+            'Total Loss' => '-$' . number_format($newTotalLoss, 2),
+            'Net Position' => ($netProfit >= 0 ? '+' : '-') . '$' . number_format(abs($netProfit), 2),
+            'Current Value' => '$' . number_format(max(0, $newCurrentValue), 2),
+            'Status' => ucfirst($newStatus),
         ];
 
-        // Send email notification
+        // Send regular update email notification
         $this->sendUpdateEmail($user, 'investment_updated', $updateDetails);
 
-        return back()->with('success', 'Investment updated successfully! Email notification sent.');
+        $successMessage = 'Investment updated successfully! Email notification sent.';
+        if ($lowBalanceWarning) {
+            $successMessage .= ' Low balance warning email sent (value at 20% or below).';
+        }
+        if ($pausedDueToZero) {
+            $successMessage .= ' Investment PAUSED due to zero balance.';
+        }
+
+        return back()->with('success', $successMessage);
+    }
+    
+    /**
+     * Send low balance warning email to user.
+     */
+    private function sendLowBalanceWarningEmail($user, $investment, $currentValue, $originalAmount)
+    {
+        $percentage = ($currentValue / $originalAmount) * 100;
+        
+        $details = [
+            'subject' => '⚠️ Low Investment Balance Warning',
+            'greeting' => 'Warning: Your investment balance is critically low!',
+            'message' => "Your {$investment->type} investment has dropped to " . number_format($percentage, 1) . "% of its original value.",
+            'Investment Type' => $investment->type,
+            'Original Amount' => '$' . number_format($originalAmount, 2),
+            'Current Value' => '$' . number_format($currentValue, 2),
+            'Action Required' => 'Please top up your investment to continue trading.',
+        ];
+        
+        $this->sendUpdateEmail($user, 'low_balance_warning', $details);
+    }
+    
+    /**
+     * Send investment paused email to user.
+     */
+    private function sendInvestmentPausedEmail($user, $investment)
+    {
+        $details = [
+            'subject' => '🛑 Investment Trading Paused',
+            'greeting' => 'Your investment trading has been paused!',
+            'message' => "Your {$investment->type} investment has been paused because the current value has reached zero.",
+            'Investment Type' => $investment->type,
+            'Original Amount' => '$' . number_format($investment->amount, 2),
+            'Status' => 'PAUSED',
+            'Action Required' => 'Please top up your investment to resume trading. No profits can be added until you top up.',
+        ];
+        
+        $this->sendUpdateEmail($user, 'investment_paused', $details);
     }
 
     /**

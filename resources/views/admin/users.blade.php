@@ -49,7 +49,7 @@
                         <th class="pb-4 font-semibold pl-0">User</th>
                         <th class="pb-4 font-semibold text-right">Balance</th>
                         <th class="pb-4 font-semibold text-right">Invested</th>
-                        <th class="pb-4 font-semibold text-right">Profit</th>
+                        <th class="pb-4 font-semibold text-right">Net Profit</th>
                         <th class="pb-4 font-semibold text-center">Status</th>
                         <th class="pb-4 font-semibold">Joined</th>
                         <th class="pb-4 font-semibold text-right">Actions</th>
@@ -75,8 +75,12 @@
                         <td class="py-4 text-right">
                             <p class="text-gray-600 text-sm">${{ number_format($user->total_invested, 2) }}</p>
                         </td>
+                        @php
+                            $activeInvestments = $user->investments->whereIn('status', ['active', 'paused', 'pending']);
+                            $userNetProfit = $activeInvestments->sum('withdrawable_profit') - $activeInvestments->sum('loss');
+                        @endphp
                         <td class="py-4 text-right">
-                            <p class="font-medium text-green-500 text-sm">+${{ number_format($user->total_profit, 2) }}</p>
+                            <p class="font-medium text-sm {{ $userNetProfit >= 0 ? 'text-green-500' : 'text-red-500' }}">{{ $userNetProfit >= 0 ? '+' : '' }}${{ number_format($userNetProfit, 2) }}</p>
                         </td>
                         <td class="py-4 text-center">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium
@@ -142,9 +146,13 @@
                             <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Invested</p>
                             <p class="text-sm font-semibold text-gray-900 mt-1">${{ number_format($user->total_invested, 2) }}</p>
                         </div>
+                        @php
+                            $mobileActiveInvestments = $user->investments->whereIn('status', ['active', 'paused', 'pending']);
+                            $mobileNetProfit = $mobileActiveInvestments->sum('withdrawable_profit') - $mobileActiveInvestments->sum('loss');
+                        @endphp
                         <div>
-                            <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Profit</p>
-                            <p class="text-sm font-bold text-green-500 mt-1">+${{ number_format($user->total_profit, 2) }}</p>
+                            <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Net Profit</p>
+                            <p class="text-sm font-bold mt-1 {{ $mobileNetProfit >= 0 ? 'text-green-500' : 'text-red-500' }}">{{ $mobileNetProfit >= 0 ? '+' : '' }}${{ number_format($mobileNetProfit, 2) }}</p>
                         </div>
                     </div>
                     

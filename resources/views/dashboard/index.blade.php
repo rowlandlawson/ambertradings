@@ -10,6 +10,42 @@
     <p class="text-gray-500 mt-1">Here's a summary of your account. Have fun!</p>
 </div>
 
+<!-- Paused Investments Alert Banner -->
+@if($pausedInvestments->count() > 0)
+<div class="mb-6 p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 shadow-sm">
+    <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-exclamation-triangle text-orange-600 text-xl"></i>
+        </div>
+        <div class="flex-1">
+            <h3 class="font-bold text-orange-800 text-lg mb-1">
+                Trading Paused on {{ $pausedInvestments->count() }} Investment{{ $pausedInvestments->count() > 1 ? 's' : '' }}
+            </h3>
+            <p class="text-orange-700 text-sm mb-3">
+                {{ $pausedInvestments->count() > 1 ? 'Some of your investments have' : 'One of your investments has' }} been paused due to losses reducing the value to zero. To resume trading, please add funds to the affected investment{{ $pausedInvestments->count() > 1 ? 's' : '' }}.
+            </p>
+            <div class="flex flex-wrap gap-2">
+                @foreach($pausedInvestments as $paused)
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 text-orange-700 text-sm font-medium">
+                    <i class="fas fa-pause-circle"></i>
+                    {{ $paused->type }} - ${{ number_format($paused->amount, 2) }}
+                </span>
+                @endforeach
+            </div>
+            <div class="mt-4">
+                <a href="{{ route('dashboard.investments') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm font-semibold rounded-lg hover:bg-orange-600 transition-colors">
+                    <i class="fas fa-arrow-right"></i>
+                    Go to Investments & Top Up
+                </a>
+            </div>
+        </div>
+        <button onclick="this.closest('.mb-6').remove()" class="text-orange-400 hover:text-orange-600 transition-colors">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+@endif
+
 <!-- Main Balance Card -->
 <div class="glass-card p-6 mb-6">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">

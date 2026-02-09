@@ -120,6 +120,10 @@
                     Your deposit request has been approved and your balance updated.
                 @elseif($updateType === 'deposit_rejected')
                     Your deposit request has been rejected. Please see details below.
+                @elseif($updateType === 'low_balance_warning')
+                    <strong style="color: #ef4444;">Warning:</strong> Your investment balance has dropped critically low.
+                @elseif($updateType === 'investment_paused')
+                    <strong style="color: #ef4444;">Alert:</strong> Your investment has been paused due to insufficient funds.
                 @else
                     Your dashboard has been updated with new information.
                 @endif

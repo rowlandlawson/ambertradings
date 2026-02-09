@@ -8,6 +8,7 @@ use App\Models\InvestmentPackage;
 use App\Models\InvestmentTopup;
 use App\Models\PaymentMethod;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,12 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
+        // Get paused investments for alert banner
+        $pausedInvestments = Investment::where('user_id', $user->id)
+            ->where('status', 'paused')
+            ->with('package')
+            ->get();
+        
         // Calculate total profit from all investments (profit - loss)
         $allInvestments = Investment::where('user_id', $user->id)->get();
         $totalProfit = $allInvestments->sum('withdrawable_profit') ?? 0;
@@ -46,9 +53,10 @@ class DashboardController extends Controller
             'total_loss' => $totalLoss,
             'active_investments' => $activeInvestments->count(),
             'total_investments' => $allInvestments->count(),
+            'paused_investments' => $pausedInvestments->count(),
         ];
 
-        return view('dashboard.index', compact('user', 'recentTransactions', 'activeInvestments', 'stats'));
+        return view('dashboard.index', compact('user', 'recentTransactions', 'activeInvestments', 'pausedInvestments', 'stats'));
     }
 
     /**
@@ -205,43 +213,53 @@ class DashboardController extends Controller
 
     /**
      * Withdraw profit from investment to wallet.
+     * User can withdraw any amount up to their net profit (profit - loss).
      */
     public function withdrawProfit(Request $request, $investmentId)
     {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+        ]);
+
         $user = User::find(Auth::id()); // Fetch fresh user instance
         $investment = Investment::where('id', $investmentId)
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        if (!$investment->hasWithdrawableProfit()) {
-            return back()->with('error', 'No profit available to withdraw from this investment.');
+        // Calculate net profit (profit - loss)
+        $netProfit = ($investment->withdrawable_profit ?? 0) - ($investment->loss ?? 0);
+
+        if ($netProfit <= 0) {
+            return back()->with('error', 'No net profit available to withdraw. Your losses exceed or equal your profits.');
         }
 
-        $profitAmount = $investment->withdrawable_profit;
+        $withdrawAmount = $validated['amount'];
 
-        if ($profitAmount <= 0) {
-             return back()->with('error', 'Profit amount must be greater than zero.');
+        if ($withdrawAmount > $netProfit) {
+            return back()->with('error', 'You cannot withdraw more than your net profit of $' . number_format($netProfit, 2));
         }
 
         // Move profit to user's wallet
-        $user->balance += $profitAmount;
-        $user->total_profit += $profitAmount; // Add to lifetime accumulated profit
+        $user->balance += $withdrawAmount;
+        $user->total_profit += $withdrawAmount; // Add to lifetime accumulated profit
         $user->save();
 
-        // Reset investment withdrawable profit
-        $investment->update(['withdrawable_profit' => 0]);
+        // Deduct from investment's withdrawable_profit
+        $investment->update([
+            'withdrawable_profit' => max(0, $investment->withdrawable_profit - $withdrawAmount)
+        ]);
 
         // Create transaction record
         Transaction::create([
             'user_id' => $user->id,
             'type' => 'profit_withdrawal',
-            'amount' => $profitAmount,
+            'amount' => $withdrawAmount,
             'status' => 'completed',
             'description' => 'Profit withdrawal from ' . $investment->type . ' investment',
             'reference' => Transaction::generateReference(),
         ]);
 
-        return back()->with('success', 'Profit of $' . number_format($profitAmount, 2) . ' has been withdrawn to your wallet!');
+        return back()->with('success', 'Profit of $' . number_format($withdrawAmount, 2) . ' has been withdrawn to your wallet!');
     }
 
     /**
@@ -256,10 +274,11 @@ class DashboardController extends Controller
         $user = Auth::user();
         $investment = Investment::where('id', $investmentId)
             ->where('user_id', $user->id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'paused']) // Allow both active and paused
             ->firstOrFail();
 
         $amount = $validated['amount'];
+        $wasPaused = $investment->status === 'paused';
 
         // Check if user has sufficient balance
         if ($user->balance < $amount) {
@@ -273,6 +292,13 @@ class DashboardController extends Controller
 
         // Add to investment amount
         $investment->amount += $amount;
+        
+        // Reactivate if was paused and now has positive current value
+        $newCurrentValue = $investment->amount + ($investment->withdrawable_profit ?? 0) - ($investment->loss ?? 0);
+        if ($wasPaused && $newCurrentValue > 0) {
+            $investment->status = 'active';
+        }
+        
         $investment->save();
 
         // Record the top-up
@@ -281,7 +307,7 @@ class DashboardController extends Controller
             'user_id' => $user->id,
             'amount' => $amount,
             'status' => 'completed',
-            'notes' => 'Top-up for ' . $investment->type . ' investment',
+            'notes' => 'Top-up for ' . $investment->type . ' investment' . ($wasPaused ? ' (reactivated)' : ''),
         ]);
 
         // Create transaction record
@@ -290,11 +316,87 @@ class DashboardController extends Controller
             'type' => 'investment_topup',
             'amount' => $amount,
             'status' => 'completed',
-            'description' => 'Top-up for ' . $investment->type . ' investment',
+            'description' => 'Top-up for ' . $investment->type . ' investment' . ($wasPaused ? ' - Trading Resumed' : ''),
             'reference' => Transaction::generateReference(),
         ]);
 
-        return back()->with('success', 'Investment topped up with $' . number_format($amount, 2) . ' successfully!');
+        $successMessage = 'Investment topped up with $' . number_format($amount, 2) . ' successfully!';
+        if ($wasPaused && $investment->status === 'active') {
+            $successMessage .= ' Your trading has been resumed.';
+        }
+
+        return back()->with('success', $successMessage);
+    }
+
+    /**
+     * End an investment and move the current value to wallet.
+     * This closes the trade and moves principal + profit - loss to wallet.
+     */
+    public function endInvestment(Request $request, $investmentId)
+    {
+        $user = \App\Models\User::find(Auth::id());
+        $investment = Investment::where('id', $investmentId)
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->firstOrFail();
+
+        // Calculate the final value to return to wallet
+        // current_value = amount + withdrawable_profit - loss
+        $finalValue = $investment->current_value;
+        
+        if ($finalValue <= 0) {
+            // Investment has been completely lost - just mark as completed
+            $investment->update([
+                'status' => 'completed',
+                'notes' => ($investment->notes ? $investment->notes . "\n" : '') . 'Investment ended by user. Total loss.',
+            ]);
+
+            // Update user's total_invested (deduct the original amount)
+            $user->total_invested = max(0, $user->total_invested - $investment->amount);
+            $user->save();
+
+            // Create transaction record
+            Transaction::create([
+                'user_id' => $user->id,
+                'type' => 'investment_closed',
+                'amount' => 0,
+                'status' => 'completed',
+                'description' => 'Investment closed: ' . $investment->type . '. Total loss - no funds returned.',
+                'reference' => Transaction::generateReference(),
+            ]);
+
+            return back()->with('warning', 'Investment closed. Unfortunately, the total loss means no funds are available to return to your wallet.');
+        }
+
+        // Move final value to wallet
+        $user->balance += $finalValue;
+        $user->total_invested = max(0, $user->total_invested - $investment->amount);
+        
+        // If there was net profit, add to total_profit
+        $netProfit = $investment->net_profit;
+        if ($netProfit > 0) {
+            $user->total_profit += $netProfit;
+        }
+        
+        $user->save();
+
+        // Mark investment as completed
+        $investment->update([
+            'status' => 'completed',
+            'notes' => ($investment->notes ? $investment->notes . "\n" : '') . 'Investment ended by user. Final value: $' . number_format($finalValue, 2),
+        ]);
+
+        // Create transaction record
+        Transaction::create([
+            'user_id' => $user->id,
+            'type' => 'investment_closed',
+            'amount' => $finalValue,
+            'status' => 'completed',
+            'description' => 'Investment closed: ' . $investment->type . '. Returned $' . number_format($finalValue, 2) . ' to wallet.',
+            'reference' => Transaction::generateReference(),
+        ]);
+
+        return back()->with('success', 'Investment ended successfully! $' . number_format($finalValue, 2) . ' has been moved to your wallet.');
     }
 
     /**
