@@ -86,7 +86,7 @@
                             </div>
                         </td>
                         <td class="py-4">
-                            <a href="{{ asset('storage/' . $deposit->receipt_image) }}" target="_blank" 
+                            <a href="{{ route('receipt.show', basename($deposit->receipt_image)) }}" target="_blank" 
                                class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm transition-colors">
                                 <i class="fas fa-image"></i>
                                 View Receipt

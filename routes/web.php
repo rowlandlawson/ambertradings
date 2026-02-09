@@ -109,3 +109,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // Chat Route
 Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+
+// Receipt Image Route (bypasses Apache symlink restriction)
+Route::get('/receipt/{filename}', function ($filename) {
+    $path = storage_path('app/public/receipts/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    
+    $mimeType = mime_content_type($path);
+    
+    return response()->file($path, [
+        'Content-Type' => $mimeType,
+    ]);
+})->where('filename', '.*')->name('receipt.show')->middleware('auth');
